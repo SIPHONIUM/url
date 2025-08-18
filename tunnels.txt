@@ -1,2 +1,2 @@
-SIPHONIUM-LAUNCHER-CONFIG = https://intervention-cad-elimination-authors.trycloudflare.com
+SIPHONIUM-LAUNCHER-CONFIG = https://anywhere-eau-into-live.trycloudflare.com
 SIPHONIUM-LAUNCHER-DOWNLOAD = https://control-sentence-literary-valued.trycloudflare.com
