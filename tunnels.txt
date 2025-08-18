@@ -1,2 +1,2 @@
-SIPHONIUM-LAUNCHER-CONFIG = https://pot-athletes-index-monday.trycloudflare.com
+SIPHONIUM-LAUNCHER-CONFIG = https://intervention-cad-elimination-authors.trycloudflare.com
 SIPHONIUM-LAUNCHER-DOWNLOAD = https://api.trycloudflare.com
