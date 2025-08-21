@@ -1,2 +1,2 @@
 SIPHONIUM-LAUNCHER-CONFIG = https://structure-nitrogen-pearl-compression.trycloudflare.com
-SIPHONIUM-LAUNCHER-DOWNLOAD = https://trivia-advised-told-prague.trycloudflare.com
+SIPHONIUM-LAUNCHER-DOWNLOAD = https://newsletter-frequently-carnival-macintosh.trycloudflare.com
