@@ -1,2 +1,2 @@
 SIPHONIUM-LAUNCHER-CONFIG = https://euro-lazy-alleged-rebates.trycloudflare.com
-SIPHONIUM-LAUNCHER-DOWNLOAD = https://creation-montana-regardless-pop.trycloudflare.com
+SIPHONIUM-LAUNCHER-DOWNLOAD = https://french-cities-sunglasses-justice.trycloudflare.com
