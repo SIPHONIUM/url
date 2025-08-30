@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Siphonium Proxy</title>
+  <style>
+    :root { --fg:#f0f0f0; --bg1:#7F00FF; --bg2:#000; }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    html, body { height:100%; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: var(--fg);
+      background: radial-gradient(ellipse at top, var(--bg1) 0%, var(--bg2) 100%);
+      display:flex; flex-direction:column; gap:10px;
+    }
+    header {
+      padding:12px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+      background: rgba(0,0,0,.25); backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    header .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    label { opacity:.85; font-size:.95rem; }
+    input, button, select, a.button {
+      border:1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.06);
+      color:var(--fg); padding:8px 10px; border-radius:9px;
+      outline:none; font-size:.95rem;
+    }
+    input { min-width:240px; }
+    button, a.button { cursor:pointer; text-decoration:none; }
+    #status { font-size:.9rem; opacity:.85; }
+    #frame {
+      width:100%; height:100%;
+      border:0; flex:1 1 auto; background:#111;
+    }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="row">
+      <label for="pageInput">Page :</label>
+      <input id="pageInput" placeholder="panel, shop.php, panel/admin, etc." />
+      <button id="goBtn">Aller</button>
+      <button id="reloadBtn" title="Recharger la config depuis tunnels.txt">Recharger config</button>
+      <a id="openNew" class="button" href="#" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
+    </div>
+    <div id="status" class="row"></div>
+  </header>
+
+  <iframe id="frame" sandbox="allow-forms allow-same-origin allow-scripts allow-popups allow-downloads"></iframe>
+
+  <script>
+    (function () {
+      const TUNNELS_URL = 'https://siphonium.github.io/url/tunnels.txt';
+      const KEY_CONFIG  = 'SIPHONIUM-LAUNCHER-CONFIG';
+      const KEY_DL      = 'SIPHONIUM-LAUNCHER-DOWNLOAD'; // au cas où, non utilisé ici
+
+      const qs = new URLSearchParams(location.search);
+      const pageParam = qs.get('page') || '';
+      const pageInput = document.getElementById('pageInput');
+      const frame = document.getElementById('frame');
+      const statusEl = document.getElementById('status');
+      const goBtn = document.getElementById('goBtn');
+      const reloadBtn = document.getElementById('reloadBtn');
+      const openNew = document.getElementById('openNew');
+
+      let baseURL = null; // résolu depuis tunnels.txt
+
+      pageInput.value = pageParam;
+
+      function setStatus(msg) {
+        statusEl.textContent = msg;
+      }
+
+      function sanitizePage(p) {
+        if (!p) return '';
+        // enlève protocole/host par sécurité, on ne veut qu’un chemin relatif
+        try {
+          if (/^https?:\/\//i.test(p)) {
+            const u = new URL(p);
+            p = (u.pathname + u.search + u.hash) || '';
+          }
+        } catch {}
+        // supprime début en / et séquences dangereuses
+        p = p.replace(/^\/+/, '').replace(/\.\.(\/|\\)/g, '');
+        return p;
+      }
+
+      async function fetchTunnels() {
+        setStatus('Chargement de la configuration…');
+        const url = TUNNELS_URL + (TUNNELS_URL.includes('?') ? '&' : '?') + '_=' + Date.now();
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+        let configURL = null, downloadURL = null;
+        for (const line of lines) {
+          const m = line.match(/^\s*([A-Z0-9\-_]+)\s*=\s*(.+)\s*$/i);
+          if (!m) continue;
+          const key = m[1].toUpperCase();
+          const val = m[2].trim();
+          if (key === KEY_CONFIG) configURL = val;
+          if (key === KEY_DL) downloadURL = val;
+        }
+        if (!configURL) throw new Error(`${KEY_CONFIG} introuvable dans tunnels.txt`);
+
+        // normalise sans / final
+        try {
+          const u = new URL(configURL);
+          u.pathname = u.pathname.replace(/\/+$/, '');
+          configURL = u.toString().replace(/\/+$/, '');
+        } catch {
+          throw new Error('URL de config invalide: ' + configURL);
+        }
+
+        baseURL = configURL;
+        setStatus(`Config OK → ${baseURL}`);
+        return { configURL, downloadURL };
+      }
+
+      function navigate() {
+        if (!baseURL) { setStatus('Config non chargée.'); return; }
+        const raw = pageInput.value.trim();
+        const page = sanitizePage(raw);
+        const target = baseURL + (page ? '/' + page : '/');
+
+        frame.src = target;
+        openNew.href = target;
+        setStatus(`Affichage : ${target}`);
+        // mets à jour l’URL locale (beau gosse, ja)
+        const newQs = new URLSearchParams(location.search);
+        if (page) newQs.set('page', page); else newQs.delete('page');
+        const newUrl = location.pathname + (newQs.toString() ? '?' + newQs.toString() : '');
+        history.replaceState(null, '', newUrl);
+      }
+
+      goBtn.addEventListener('click', navigate);
+      pageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(); });
+      reloadBtn.addEventListener('click', async () => {
+        try { await fetchTunnels(); navigate(); }
+        catch (e) { setStatus('Erreur config: ' + e.message); }
+      });
+
+      // auto-run
+      (async () => {
+        try {
+          await fetchTunnels();
+          navigate();
+        } catch (e) {
+          setStatus('Erreur config: ' + e.message);
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>
