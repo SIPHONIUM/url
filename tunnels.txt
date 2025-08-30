@@ -1,2 +1,3 @@
 SIPHONIUM-LAUNCHER-CONFIG = https://thou-belly-uruguay-elementary.trycloudflare.com
 SIPHONIUM-LAUNCHER-DOWNLOAD = https://ide-operators-referrals-constitution.trycloudflare.com
+ROCKNITE-STUDIO-CREDITS-PAYEMENT = https://ca-navy-yo-sense.trycloudflare.com
