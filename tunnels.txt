@@ -1,2 +1,2 @@
 SIPHONIUM-LAUNCHER-CONFIG = https://thou-belly-uruguay-elementary.trycloudflare.com
-SIPHONIUM-LAUNCHER-DOWNLOAD = https://physical-society-travels-arts.trycloudflare.com
+SIPHONIUM-LAUNCHER-DOWNLOAD = https://ide-operators-referrals-constitution.trycloudflare.com
